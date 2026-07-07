@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Replay</title></head>
+<body>
+<canvas id="canvas" width="800" height="600"></canvas>
+<script>
+  fetch('output.json')
+    .then(res => res.json())
+    .then(trimmedFrames => {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      let frameIndex = 0;
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const frame = trimmedFrames[frameIndex];
+        for (const player of frame.players) {
+          if (!player) continue;
+          const screenX = 400 + player.x * 4;
+          const screenY = 300 - player.y * 4;
+          ctx.beginPath();
+          ctx.arc(screenX, screenY, 10, 0, Math.PI * 2);
+          ctx.fillStyle = 'red';
+          ctx.fill();
+        }
+
+        frameIndex = (frameIndex + 1) % trimmedFrames.length;
+        requestAnimationFrame(render);
+      }
+
+      render();
+    })
+    .catch(err => console.error('Failed to load output.json:', err));
+</script>
+</body>
+</html>
