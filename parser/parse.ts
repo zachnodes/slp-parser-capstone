@@ -3,33 +3,37 @@ import fs from 'fs';
 import { SlippiGame } from '@slippi/slippi-js/node';
 
 const filePath = path.join(__dirname, 'test-replays', 'Game_20260701T025227.slp');
+const gamer = new SlippiGame(filePath)
+const settings = gamer.getSettings()
 
-const game = new SlippiGame(filePath);
-
-const frames = game.getFrames();
-const settings = game.getSettings();
-if (!settings) {
-  throw new Error('Couldnt read settings')
-}
-console.log(settings);
-
-type TrimmedPlayer = {
+console.log(gamer.getFrames()[0].players)
+export type TrimmedPlayer = {
   x: number;
   y: number;
   characterId: number;
   displayName: string;
   facingDirection: number;
   actionStateId: number;
+  actionStateCounter: number;
   percent: number;
   stocksRemaining: number;
 } | null;
 
-type TrimmedFrame = {
+export type TrimmedFrame = {
   frame: number;
   players: TrimmedPlayer[];
 };
 
-const trimmedFrames: TrimmedFrame[] = Object.keys(frames)
+export const getTrimmedFrames = (filePath: string ): TrimmedFrame[] => {
+  
+  const game = new SlippiGame(filePath);
+  const frames = game.getFrames();
+  const settings = game.getSettings();
+  if (!settings) {
+    throw new Error('Couldnt read settings')
+  }
+
+  return Object.keys(frames)
   .map(Number) // Turn each key into num e.g '1' -> 1
   .sort((a, b) => a - b) // Sort in ascending order
   .map((frameNum) => {
@@ -52,16 +56,11 @@ const trimmedFrames: TrimmedFrame[] = Object.keys(frames)
               : settings.players[1].displayName,
           facingDirection: p.post.facingDirection ?? 1,
           actionStateId: p.post.actionStateId ?? 0,
+          actionStateCounter: p.post.actionStateCounter ?? 0,
           percent: p.post.percent ?? 0,
           stocksRemaining: p.post.stocksRemaining ?? 0,
         };
       }),
     };
   });
-
-// fs.writeFileSync(
-//   path.join(__dirname, 'output.json'),
-//   JSON.stringify(trimmedFrames)
-// );
-
-export { trimmedFrames };
+}
